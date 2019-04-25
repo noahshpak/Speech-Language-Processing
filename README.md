@@ -4,7 +4,7 @@ Code developed following the outstanding [textbook](https://web.stanford.edu/~ju
 
 # Testing
 
-In each chapter directory, you can run the following to test the code: 
+You can run the following to test the code: 
 
 ```
 python -m pytest
