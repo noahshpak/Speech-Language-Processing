@@ -70,6 +70,3 @@ def edit_distance(src: str, tgt: str):
     return (D[n][m], list(trace))
 
 
-
-if __name__ == "__main__":
-    min_dist, back = edit_distance("INTENTION", "EXECUTION")
