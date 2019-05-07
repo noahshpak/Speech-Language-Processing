@@ -1,5 +1,5 @@
 # Dynamic Programming Solution to Minimum Edit Distance
-# @author: noahshpak
+# 
 from collections import deque
 
 INS = 'insert'
