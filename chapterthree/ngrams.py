@@ -1,3 +1,4 @@
+import math
 import spacy
 import numpy as np
 from typing import List, Dict, Tuple
@@ -54,4 +55,16 @@ class LM:
         most_likely_prob = next_word_space[most_likely_idx]
         same_prob = [(self.vocab[i], prob) for i, prob in enumerate(next_word_space) if prob == most_likely_prob]
         return same_prob[np.random.randint(0, len(same_prob))]
-        
+    
+    def generate_sequence(self, seed: Tuple[str], seq=None, length=10):
+        if seq is None:
+            seq = [w for w in seed]
+        nml = self.next_most_likely(seed)
+        if nml[0] == END_TOKEN or len(seq) == length:
+            return ' '.join(seq)
+        seq = seq + [nml[0]]
+        return self.generate_sequence(seed=tuple(seq[-(self.n-1):]), seq=seq)
+
+    def perplexity(self, test_set: List[str]):
+        test_tokens = [t for sentence in test_set for t in self.tokenize(sentence)]
+        return self.sequence_probability(test_tokens)**(-1/len(test_tokens))
