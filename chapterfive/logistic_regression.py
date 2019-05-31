@@ -16,6 +16,12 @@ class LogisticRegressionClassifier:
         self.loss = loss
         self.shuffle = shuffle
 
+    @staticmethod
+    def cross_entropy_loss(x, y):
+        pass
+
+
+
     def decision_function(self, X):
         """
         Predict confidence scores for samples
