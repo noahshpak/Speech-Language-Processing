@@ -1,4 +1,5 @@
-import numpy as np
+import math
+import torch
 
 
 class LogisticRegressionClassifier:
@@ -20,16 +21,6 @@ class LogisticRegressionClassifier:
     def cross_entropy_loss(x, y):
         pass
 
-
-
-    def decision_function(self, X):
-        """
-        Predict confidence scores for samples
-        :param X: array_like, shape (n_samples, n_features)
-        :return: array, shape=(n_samples,)
-        """
-        pass
-
     def fit(self, X, y, coef_init=None, intercept_init=None, sample_weight=None):
         """
         Fit the logisitic regression with SGD
@@ -45,36 +36,17 @@ class LogisticRegressionClassifier:
             Weights applied to individual examples. If not supplied, uniform weights assumed.
         :return: self
         """
+        n, c = X.shape
+        self.W = torch.randn(c, 1) / math.sqrt(c)  # Glorot initialization
+        self.W.requires_grad_()
+        self.b = torch.zeros(1, requires_grad=True)
+        for xb in self.batchify(X):
+            preds = torch.sigmoid(xb @ self.W + self.b)
+
+    def batchify(self, X):
         pass
 
-    def get_params(self, deep=True):
-        """
-        Get Parameters for this estimator
-        :param deep: if True will return nested params from other estimators
-        :return: params: mapping of string to any
-        """
-        pass
-
-    def partial_fit(self, X, y, classes=None, sample_weight=None):
-        """
-        Perform one epoch of SGD on given samples
-        :param X:  array-like, shape (n_samples, n_features)
-            subset of training data
-        :param y: array, shape (n_samples)
-            subset of target values
-        :param classes: array, shape (n_classes)
-            Classes across all calls to partial_fit.
-            Can be obtained by via np.unique(y_all),
-            where y_all is the target vector of the entire dataset.
-            This argument is required for the first call to partial_fit and can be omitted in the subsequent calls.
-            Note that y doesn’t need to contain all labels in classes.
-        :param sample_weight: array-like, shape (n_samples), optional
-            Weights applied to individual examples. If not supplied, uniform weights assumed.
-        :return: self
-        """
-        pass
-
-    def predict(self, X):
+    def predict(self, X, decision_boundary=0.5):
         """
         predict class labels for samples in X
         :param X: array-like, shape (n_samples, n_features)
@@ -82,37 +54,25 @@ class LogisticRegressionClassifier:
         :return: C: array, shape [n_samples]
             Predicted class label per sample
         """
-        pass
+        proba = self.predict_proba(X)
+        return proba > decision_boundary
 
-    def predict_log_proba(self, X):
+    def predict_proba(self, X):
         """
-        Log of probability estimates
-
-        Only available for Log Loss and modified Huber loss
         :param X: array-like, shape (n_samples, n_features)
-        :return: T: array-like, shape (n_samples, n_classes)
-        Returns the log-probability of the sample for each class in the model,
-        where classes are ordered as they are in self.classes_
+        :return: the model's confidence in each prediction
         """
-        pass
+        return torch.sigmoid(X @ self.W + self.b)
 
-    def predict_proba(self):
-        """
-        Only available for log loss
-
-        :param X: array-like, shape (n_samples, n_features)
-        :return: T: array-like, shape (n_samples, n_classes)
-        Returns the probability of the sample for each class in the model,
-        where classes are ordered as they are in self.classes_
-        pass
-        """
-    def score(self, X, y, sample_weight=None):
+    def score(self, X, y, sample_weight=None, decision_boundary=0.5):
         """
         Returns the mean accuracy on the given test data and labels
+        :param decision_boundary: the confidence value that signifies pos classification (default: 0.5)
         :param X: array-like, shape (n_samples, n_features)
         :param y: array-like, shape (n_samples)
         :param sample_weight: array-like, shape [n_samples]
         :return: score: float
             Mean accuracy of self.predict(X) wrt y.
         """
-        pass
+        assert y.size()[0] == X.size()[0]
+        return torch.sum(self.predict(X) == y) / len(y)
