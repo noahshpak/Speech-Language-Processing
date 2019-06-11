@@ -8,20 +8,11 @@ class LogisticRegressionClassifier:
     Using the Scikit-Learn interface as inspiration
     (tip from Jeremy Howard)
     """
-    def __init__(self, penalty='l2', max_iter=100, n_jobs=None, verbose=0, loss='log',
-                 shuffle=True):
-        self.penalty = penalty
+    def __init__(self, max_iter=100, learning_rate=0.01):
         self.max_iter = max_iter
-        self.n_jobs = n_jobs
-        self.verbose = verbose
-        self.loss = loss
-        self.shuffle = shuffle
+        self.learning_rate = learning_rate
 
-    @staticmethod
-    def cross_entropy_loss(x, y):
-        pass
-
-    def fit(self, X, y, coef_init=None, intercept_init=None, sample_weight=None):
+    def fit(self, X, y, batch_size, coef_init=None, intercept_init=None):
         """
         Fit the logisitic regression with SGD
         :param X: array-like matrix with shape (n_samples, n_features)
@@ -37,18 +28,39 @@ class LogisticRegressionClassifier:
         :return: self
         """
         n, c = X.shape
-        self.W = torch.randn(c, 1) / math.sqrt(c)  # Glorot initialization
+        self.W = torch.randn(c, 1) / math.sqrt(c) if not coef_init else coef_init  # Glorot initialization
         self.W.requires_grad_()
-        self.b = torch.zeros(1, requires_grad=True)
-        for xb in self.batchify(X):
-            preds = torch.sigmoid(xb @ self.W + self.b)
+        self.b = torch.zeros(1, requires_grad=True) if not intercept_init else intercept_init
 
-    def batchify(self, X):
-        pass
+        for i in range(self.max_iter):
+            print(i)
+            for xb, yb in self.batchify(X, y, batch_size):
+                predictions = self.predict_proba(xb)  # forward pass
+                loss = self.cross_entropy_loss(predictions, yb)
+                print(loss)
+                loss.backward()
+
+                with torch.no_grad():
+                    self.W -= self.W.grad * self.learning_rate
+                    self.b -= self.b.grad * self.learning_rate
+                    self.W.grad.zero_()
+                    self.b.grad.zero_()
+
+    @staticmethod
+    def cross_entropy_loss(y_hat, y):
+        return -(y*torch.log(y_hat) + (1-y)*torch.log(1-y_hat)).mean()
+
+    @staticmethod
+    def batchify(X, y, bsz):
+        assert y.size()[0] == X.size()[0]
+        num_samples = X.size()[0]
+        for i in range(0, num_samples, bsz):
+            yield X[i:i+bsz], y[i:i+bsz]
 
     def predict(self, X, decision_boundary=0.5):
         """
         predict class labels for samples in X
+        :param decision_boundary: if pred proba > decision_boundary => True
         :param X: array-like, shape (n_samples, n_features)
             Samples
         :return: C: array, shape [n_samples]
@@ -75,4 +87,4 @@ class LogisticRegressionClassifier:
             Mean accuracy of self.predict(X) wrt y.
         """
         assert y.size()[0] == X.size()[0]
-        return torch.sum(self.predict(X) == y) / len(y)
+        return (self.predict(X).float() == y).float().mean()
