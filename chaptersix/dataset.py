@@ -20,7 +20,11 @@ def create_lm_dataset(tokens: List[str], context_size: int):
         target = tokens[i]
         X.append(context)
         y.append(target)
-    return X, y, vocab, word_to_ix
+
+    # convert to indices
+    x_train = torch.tensor([[word_to_ix[w] for w in context] for context in X], dtype=torch.long)
+    y_train = torch.tensor([word_to_ix[t] for t in y], dtype=torch.long)
+    return x_train, y_train, vocab, word_to_ix
 
 
 def create_cbow_dataset(tokens: List[str], context_size: int):
@@ -32,4 +36,8 @@ def create_cbow_dataset(tokens: List[str], context_size: int):
         target = tokens[i]
         X.append(context)
         y.append(target)
-    return X, y, vocab, word_to_ix
+
+    # convert to indices
+    x_train = torch.tensor([[word_to_ix[w] for w in context] for context in X], dtype=torch.long)
+    y_train = torch.tensor([word_to_ix[t] for t in y], dtype=torch.long)
+    return x_train, y_train, vocab, word_to_ix
