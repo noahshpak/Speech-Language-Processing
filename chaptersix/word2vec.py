@@ -5,12 +5,7 @@ import torch.functional as F
 from typing import List, Dict
 
 
-data = []
-context_size = 5
-MAX_VOCAB = 20000
-
-
-class VectorSemanticsDataset(data.Dataset):
+class CBOW(nn.Module):
     pass
 
 
