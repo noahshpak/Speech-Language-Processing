@@ -7,7 +7,7 @@ from torch.utils.data import TensorDataset
 import torch.nn.functional as F
 
 from typing import List, Dict
-from dataset import create_cbow_dataset
+from chaptersix.dataset import create_cbow_dataset
 
 
 class CBOW(nn.Module):
